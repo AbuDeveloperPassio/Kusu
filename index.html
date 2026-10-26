@@ -64,10 +64,6 @@
 </main>
 
 <script>
-  // 1) Deploy Code.gs as a Web App (see README.md)
-  // 2) Paste the Web App URL below
-  const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
-
   const form = document.getElementById("form");
   const btn = document.getElementById("submit");
   const msg = document.getElementById("msg");
@@ -76,21 +72,21 @@
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (SCRIPT_URL.startsWith("PASTE_")) { show("Set SCRIPT_URL in index.html first.", "err"); return; }
     if (!form.name.value.trim() || !/^\S+@\S+\.\S+$/.test(form.email.value.trim())) {
       show("Please enter a valid name and email.", "err"); return;
     }
-    if (form.website.value) return; // bot
-
     btn.disabled = true; show("Submitting…");
     try {
-      const body = new URLSearchParams(new FormData(form));
-      // no-cors: Apps Script doesn't send CORS headers; the request still reaches the sheet
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body });
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(new FormData(form)))
+      });
+      if (!res.ok) throw new Error("bad status " + res.status);
       show("Thank you! Your details were submitted.", "ok");
       form.reset();
     } catch (err) {
-      show("Could not submit. Check your connection and try again.", "err");
+      show("Could not submit. Please try again.", "err");
     } finally {
       btn.disabled = false;
     }
