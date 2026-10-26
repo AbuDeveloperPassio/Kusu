@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kusu Registration Form</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1c2333; --muted:#6b7385; --brand:#4f46e5; --ok:#15803d; --err:#b91c1c; --line:#d9dde7; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); display:flex; justify-content:center; padding:24px 16px; }
+  .card { width:100%; max-width:480px; background:var(--card); border-radius:16px; padding:28px 24px; box-shadow:0 8px 30px rgba(20,30,70,.08); }
+  h1 { margin:0 0 4px; font-size:1.5rem; }
+  p.sub { margin:0 0 20px; color:var(--muted); font-size:.95rem; }
+  label { display:block; font-weight:600; font-size:.9rem; margin:14px 0 6px; }
+  input, select, textarea { width:100%; padding:12px; font:inherit; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--brand); border-color:transparent; }
+  textarea { min-height:90px; resize:vertical; }
+  button { width:100%; margin-top:22px; padding:14px; font:inherit; font-weight:600; color:#fff; background:var(--brand); border:0; border-radius:10px; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #msg { margin-top:16px; font-size:.95rem; min-height:1.2em; }
+  #msg.ok { color:var(--ok); } #msg.err { color:var(--err); }
+  .hp { position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Registration</h1>
+  <p class="sub">Fill in your details and submit.</p>
+
+  <form id="form" novalidate>
+    <label for="name">Full name *</label>
+    <input id="name" name="name" type="text" required autocomplete="name">
+
+    <label for="email">Email *</label>
+    <input id="email" name="email" type="email" required autocomplete="email">
+
+    <label for="phone">Phone</label>
+    <input id="phone" name="phone" type="tel" autocomplete="tel">
+
+    <label for="age">Age</label>
+    <input id="age" name="age" type="number" min="1" max="120">
+
+    <label for="gender">Gender</label>
+    <select id="gender" name="gender">
+      <option value="">Select…</option>
+      <option>Male</option>
+      <option>Female</option>
+      <option>Other</option>
+      <option>Prefer not to say</option>
+    </select>
+
+    <label for="city">City</label>
+    <input id="city" name="city" type="text" autocomplete="address-level2">
+
+    <label for="message">Message</label>
+    <textarea id="message" name="message"></textarea>
+
+    <!-- honeypot against bots -->
+    <input class="hp" name="website" tabindex="-1" autocomplete="off">
+
+    <button id="submit" type="submit">Submit</button>
+    <div id="msg" role="status" aria-live="polite"></div>
+  </form>
+</main>
+
+<script>
+  // 1) Deploy Code.gs as a Web App (see README.md)
+  // 2) Paste the Web App URL below
+  const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+  const form = document.getElementById("form");
+  const btn = document.getElementById("submit");
+  const msg = document.getElementById("msg");
+
+  function show(text, cls) { msg.textContent = text; msg.className = cls || ""; }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (SCRIPT_URL.startsWith("PASTE_")) { show("Set SCRIPT_URL in index.html first.", "err"); return; }
+    if (!form.name.value.trim() || !/^\S+@\S+\.\S+$/.test(form.email.value.trim())) {
+      show("Please enter a valid name and email.", "err"); return;
+    }
+    if (form.website.value) return; // bot
+
+    btn.disabled = true; show("Submitting…");
+    try {
+      const body = new URLSearchParams(new FormData(form));
+      // no-cors: Apps Script doesn't send CORS headers; the request still reaches the sheet
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body });
+      show("Thank you! Your details were submitted.", "ok");
+      form.reset();
+    } catch (err) {
+      show("Could not submit. Check your connection and try again.", "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
